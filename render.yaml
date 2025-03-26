@@ -4,5 +4,4 @@ services:
     env: python
     plan: free
     buildCommand: ""
-    startCommand: gunicorn app:app
-    envVars: []
+    startCommand: gunicorn app:app --timeout 360
