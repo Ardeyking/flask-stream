@@ -1,16 +1,13 @@
-from flask import Flask, Response, request
+from flask import Flask, Response, request, render_template
+import threading
 import time
-import cv2
-import numpy as np
 
 app = Flask(__name__)
-latest_frame = None
+latest_frame = b''
 
-def generate_blank_frame():
-    # Create a black 640x480 frame
-    frame = np.zeros((480, 640, 3), dtype=np.uint8)
-    _, jpeg = cv2.imencode('.jpg', frame)
-    return jpeg.tobytes()
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 @app.route('/upload_frame', methods=['POST'])
 def upload_frame():
@@ -23,15 +20,8 @@ def video_feed():
     def generate():
         global latest_frame
         while True:
-            frame = latest_frame if latest_frame else generate_blank_frame()
-
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-            time.sleep(0.1)
-
+            if latest_frame:
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + latest_frame + b'\r\n')
+            time.sleep(0.05)  # ~20 FPS
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-@app.route('/')
-def home():
-    return "<h2>Livestream</h2><img src='/video_feed' width='640'>"

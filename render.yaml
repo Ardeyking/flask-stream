@@ -1,7 +1,7 @@
 services:
   - type: web
-    name: flask-livestream
+    name: flask-stream
     env: python
     plan: free
     buildCommand: ""
-    startCommand: gunicorn app:app --worker-class
+    startCommand: gunicorn app:app --worker-class gevent --timeout 0
