@@ -3,38 +3,33 @@ import requests
 import time
 import os
 
-RENDER_URL = "https://flask-stream-oo4j.onrender.com"
+# Replace with your actual Render livestream endpoint
+RENDER_URL = "https://your-app-name.onrender.com/upload_frame"
 
 while True:
     try:
-        # Delete the old frame to force a fresh capture
+        # Remove old frame if it exists
         if os.path.exists("frame.jpg"):
             os.remove("frame.jpg")
-        print("Looping... Capturing new frame")
-        # Capture a new frame
-        result = subprocess.run([
+
+        # Capture JPEG using libcamera
+        subprocess.run([
             "libcamera-jpeg",
             "-o", "frame.jpg",
             "--width", "640",
             "--height", "480",
             "--nopreview",
             "-t", "1"
-        ], capture_output=True, text=True)
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
 
-        if result.returncode != 0:
-            print("Capture failed:", result.stderr)
-            time.sleep(1)
-            continue
-
-        time.sleep(0.1)  # Give camera time to reset before upload
-
-        # Upload frame
+        # Upload the frame to Render
         with open("frame.jpg", "rb") as f:
             res = requests.post(RENDER_URL, data=f.read(), timeout=5)
-            print("Frame sent:", res.status_code)
+            print("Sent:", res.status_code)
 
-        time.sleep(0.3)  # ~3 FPS for stability
+        # Wait a bit before sending the next frame
+        time.sleep(0.2)  # ~5 FPS
 
     except Exception as e:
-        print("Error:", e)
+        print("Error sending frame:", e)
         time.sleep(1)

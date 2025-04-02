@@ -1,13 +1,12 @@
 from flask import Flask, Response, request, render_template
-import threading
 import time
 
 app = Flask(__name__)
-latest_frame = b''
+latest_frame = b''  # Stores the most recent uploaded frame
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index.html')  # This should load your live viewer page
 
 @app.route('/upload_frame', methods=['POST'])
 def upload_frame():
@@ -23,5 +22,6 @@ def video_feed():
             if latest_frame:
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + latest_frame + b'\r\n')
-            time.sleep(0.05)  # ~20 FPS
+            time.sleep(0.05)  # Stream at ~20 FPS max
+
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
